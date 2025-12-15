@@ -1,0 +1,312 @@
+"""
+NLP Service - BioClinicalBERT Model Integration
+"""
+import torch
+from transformers import (AutoTokenizer, AutoModelForSequenceClassification,
+                          AutoModelForTokenClassification)
+from typing import Dict, Optional
+import logging
+import os
+from pathlib import Path
+
+logger = logging.getLogger(__name__)
+
+# MODEL CONFIGURATION
+
+# Paths to trained BioClinicalBERT models
+# Determine project and model directories. Allow overrides via environment variables
+# Default project root (four levels up from this file)
+DEFAULT_PROJECT_ROOT = Path(__file__).resolve().parents[3]
+PROJECT_ROOT = Path(os.getenv("PROJECT_ROOT", DEFAULT_PROJECT_ROOT))
+# Allow explicit model directory override (e.g., set MODEL_DIR in Render)
+MODEL_BASE = Path(os.getenv("MODEL_DIR", PROJECT_ROOT / "models"))
+INTENT_MODEL_PATH = MODEL_BASE / "intent_model"
+NER_MODEL_PATH = MODEL_BASE / "ner_model"
+
+# Model loaded once at startup
+intent_model = None
+intent_tokenizer = None
+ner_model = None
+ner_tokenizer = None
+device = None
+
+# Intent labels
+INTENT_LABELS = {
+    0: "find_trials",
+    1: "goodbye",
+    2: "greeting"
+}
+
+# NER labels (B-I-O format)
+NER_LABELS = {
+    0: "O",
+    1: "B-CANCER_TYPE",
+    2: "I-CANCER_TYPE",
+    3: "B-AGE",
+    4: "I-AGE",
+    5: "B-SEX",
+    6: "I-SEX",
+    7: "B-LOCATION",
+    8: "I-LOCATION"
+}
+
+# Reverse mapping
+LABEL_TO_ID = {v: k for k, v in NER_LABELS.items()}
+
+
+def load_models():
+    """
+    Load both trained models at startup.
+    Called once when the FastAPI app starts.
+    """
+    global intent_model, intent_tokenizer, ner_model, ner_tokenizer, device
+
+    try:
+        # Check if model directories exist
+        if not INTENT_MODEL_PATH.exists():
+            logger.warning(f"Intent model not found at {INTENT_MODEL_PATH}")
+            logger.warning("NLP features will be limited. Run ML training to create models.")
+            return
+            
+        if not NER_MODEL_PATH.exists():
+            logger.warning(f"NER model not found at {NER_MODEL_PATH}")
+            logger.warning("NLP features will be limited. Run ML training to create models.")
+            return
+
+        # Determine device
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        logger.info(f"Loading models on device: {device}")
+
+        # Load Intent Classification Model
+        logger.info(f"Loading intent model from {INTENT_MODEL_PATH}")
+        intent_tokenizer = AutoTokenizer.from_pretrained(str(INTENT_MODEL_PATH))
+        intent_model = AutoModelForSequenceClassification.from_pretrained(
+            str(INTENT_MODEL_PATH))
+        intent_model.to(device)
+        intent_model.eval()
+        logger.info("Intent model loaded successfully")
+
+        # Load NER Model
+        logger.info(f"Loading NER model from {NER_MODEL_PATH}")
+        ner_tokenizer = AutoTokenizer.from_pretrained(str(NER_MODEL_PATH))
+        ner_model = AutoModelForTokenClassification.from_pretrained(
+            str(NER_MODEL_PATH))
+        ner_model.to(device)
+        ner_model.eval()
+        logger.info("NER model loaded successfully")
+
+    except Exception as e:
+        logger.error(f"Error loading models: {str(e)}")
+        logger.warning("Continuing without ML models - using fallback logic")
+        # Don't raise - let the app continue with fallback behavior
+
+
+def predict_intent(text: str) -> str:
+    """
+    Predict intent using the trained intent classification model.
+
+    Args:
+        text: User input text
+
+    Returns:
+        Intent label (e.g., "find_trials", "goodbye", "greeting")
+    """
+    if intent_model is None:
+        logger.error("Intent model not loaded")
+        return "find_trials"  # Default fallback
+
+    try:
+        # Tokenize input
+        inputs = intent_tokenizer(
+            text,
+            return_tensors="pt",
+            truncation=True,
+            max_length=512,
+            padding=True
+        ).to(device)
+
+        # Get prediction
+        with torch.no_grad():
+            outputs = intent_model(**inputs)
+            predictions = torch.argmax(outputs.logits, dim=-1)
+            intent_id = predictions.item()
+
+        # Map to intent label
+        intent = INTENT_LABELS.get(intent_id, "find_trials")
+        logger.info(f"Predicted intent: {intent}")
+        return intent
+
+    except Exception as e:
+        logger.error(f"Error predicting intent: {str(e)}")
+        return "find_trials"  # Default fallback
+
+
+def predict_entities(text: str) -> Dict[str, Optional[str]]:
+    """
+    Extract entities using the trained NER model.
+
+    Args:
+        text: User input text
+
+    Returns:
+        Dictionary of extracted entities
+    """
+    if ner_model is None:
+        logger.error("NER model not loaded")
+        return {}
+
+    try:
+        # Split into words
+        words = text.split()
+        
+        # Tokenize with is_split_into_words=True
+        inputs = ner_tokenizer(
+            words,
+            is_split_into_words=True,
+            return_tensors="pt",
+            truncation=True,
+            max_length=512,
+            padding=True
+        )
+        
+        inputs_on_device = {k: v.to(device) for k, v in inputs.items()}
+
+        # Get predictions
+        with torch.no_grad():
+            outputs = ner_model(**inputs_on_device)
+            predictions = torch.argmax(outputs.logits, dim=-1)[0]
+
+        # Use word_ids to map tokens back to words
+        word_ids = inputs.word_ids(batch_index=0)
+        
+        # Get one prediction per word (use first subword token's prediction)
+        word_predictions = []
+        previous_word_id = None
+        
+        for idx, word_id in enumerate(word_ids):
+            if word_id is None:  # Special tokens
+                continue
+            if word_id != previous_word_id:  # First token of a new word
+                pred_id = predictions[idx].item()
+                label = NER_LABELS.get(pred_id, "O")
+                word_predictions.append((words[word_id], label))
+                previous_word_id = word_id
+
+        # Extract entities from word-level predictions
+        entities = {
+            "cancer_type": None,
+            "age": None,
+            "sex": None,
+            "location": None,
+        }
+
+        current_entity = None
+        current_words = []
+
+        for word, label in word_predictions:
+            # Handle B- (beginning) tags
+            if label.startswith("B-"):
+                # Save previous entity if exists
+                if current_entity and current_words:
+                    entity_text = " ".join(current_words)
+                    entity_type = current_entity.lower()
+                    if entity_type in entities:
+                        entities[entity_type] = entity_text
+
+                # Start new entity
+                current_entity = label[2:]  # Remove "B-"
+                current_words = [word]
+
+            # Handle I- (inside) tags
+            elif label.startswith("I-") and current_entity:
+                entity_type = label[2:]
+                if entity_type == current_entity:
+                    current_words.append(word)
+
+            # Handle O (outside) tags
+            else:
+                # Save previous entity if exists
+                if current_entity and current_words:
+                    entity_text = " ".join(current_words)
+                    entity_type = current_entity.lower()
+                    if entity_type in entities:
+                        entities[entity_type] = entity_text
+                current_entity = None
+                current_words = []
+
+        # Last entity
+        if current_entity and current_words:
+            entity_text = " ".join(current_words)
+            entity_type = current_entity.lower()
+            if entity_type in entities:
+                entities[entity_type] = entity_text
+
+        logger.info(f"Extracted entities: {entities}")
+        return entities
+
+    except Exception as e:
+        logger.error(f"Error extracting entities: {str(e)}")
+        return {}
+
+def extract_entities(user_input: str, intake_context: Optional[Dict] = None) -> Dict[str, Optional[str]]:
+    """
+    Main function
+    Extracts intent and entities from user input.
+
+    Args:
+        user_input: The user's message
+
+    Returns:
+        Dictionary with format:
+        {
+            'intent': 'find_trials',
+            'cancer_type': 'Prostate',
+            'stage': 'Stage 2',  # or None
+            'location': 'Texas',
+            'sex': 'Male',
+            'age': '65'
+        }
+    """
+    logger.info(f"Processing user input for entity extraction")
+
+    # Get intent
+    intent = predict_intent(user_input)
+    print(f"NLP: Predicted intent: {intent}")
+
+
+    # Get entities
+    entities = predict_entities(user_input)
+    logger.info("Entity extraction complete")
+
+    # Build response
+    result = {
+        'intent': intent,
+        'cancer_type': entities.get('cancer_type'),
+        'location': entities.get('location'),
+        'age': entities.get('age'),
+        'sex': entities.get('sex')
+    }
+
+    # Only use intake values if entity wasn't found in the current message
+    if intake_context:
+        if not result.get('cancer_type'):
+            result['cancer_type'] = intake_context.get('cancer_type')
+        if not result.get('location'):
+            result['location'] = intake_context.get('location')
+        if not result.get('age'):
+            result['age'] = intake_context.get('age')
+        if not result.get('sex'):
+            result['sex'] = intake_context.get('sex')
+        
+        # Always include stage from intake (not extracted by NER)
+        result['stage'] = intake_context.get('stage')
+        result['comorbidities'] = intake_context.get('comorbidities', [])
+        result['prior_treatments'] = intake_context.get('prior_treatments', [])
+        
+        print(f"NLP: After applying intake context: {result}")
+
+    # Clean up None values from result (keeps response cleaner)
+    result = {k: v for k, v in result.items() if v is not None}
+
+    logger.info(f"Final result: {result}")
+    return result
