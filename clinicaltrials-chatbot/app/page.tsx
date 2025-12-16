@@ -186,7 +186,7 @@ export default function ChatPage() {
             { id: Date.now() + 1, from: 'bot', text: botText, time: new Date().toLocaleTimeString(), results },
           ]);
         } else {
-          const reply = res?.response || 'Thank you — we received your information and are searching for matches.';
+          const reply = res?.response || 'Thank you! we received your information and are searching for matches.';
           setMessages((prev: Message[]) => [...prev, { id: Date.now() + 1, from: 'bot', text: reply, time: new Date().toLocaleTimeString() }]);
         }
       } catch (err) {
