@@ -9,6 +9,8 @@ import LottiePlayer from "@/components/LottiePlayer";
 import { X } from "lucide-react";
 
 export default function ChatPage() {
+  // Generate unique user_id for this session
+  const [userId] = useState(() => `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
   const [showChat, setShowChat] = useState(false);
   const [promptVisible, setPromptVisible] = useState(true);
 
@@ -168,22 +170,23 @@ export default function ChatPage() {
     // Send questionnaire to backend and show response (fallback to simulated reply)
     (async () => {
       try {
-        const res = await postChat({ type: 'questionnaire', data: formData });
-        if (res?.results && Array.isArray(res.results) && res.results.length > 0) {
-          const results: TrialResult[] = res.results.map((r: any) => ({
-            nctId: r.nctId || '',
-            title: r.title || '',
+        const res = await postChat({ type: 'questionnaire', data: formData, user_id: userId });
+        if (res?.trials && Array.isArray(res.trials) && res.trials.length > 0) {
+          const results: TrialResult[] = res.trials.map((r: any) => ({
+            nctId: r.nct_id || r.nctId || '',
+            title: r.brief_title || r.title || '',
             condition: r.condition || '',
             phase: r.phase || '',
             location: r.location || '',
-            url: r.url || '',
+            url: r.url || `https://clinicaltrials.gov/study/${r.nct_id || r.nctId}`,
           }));
+          const botText = res?.response || `I found ${results.length} trials that might match. Click to view details.`;
           setMessages((prev: Message[]) => [
             ...prev,
-            { id: Date.now() + 1, from: 'bot', text: `I found ${results.length} trials that might match. Click to view details.`, time: new Date().toLocaleTimeString(), results },
+            { id: Date.now() + 1, from: 'bot', text: botText, time: new Date().toLocaleTimeString(), results },
           ]);
         } else {
-          const reply = res?.reply || 'Thank you — we received your information and are searching for matches.';
+          const reply = res?.response || 'Thank you — we received your information and are searching for matches.';
           setMessages((prev: Message[]) => [...prev, { id: Date.now() + 1, from: 'bot', text: reply, time: new Date().toLocaleTimeString() }]);
         }
       } catch (err) {
@@ -209,19 +212,20 @@ export default function ChatPage() {
     // Send to backend and append reply (fallback to simulated reply)
     (async () => {
       try {
-        const res = await postChat({ type: 'message', text });
-        if (res?.results && Array.isArray(res.results) && res.results.length > 0) {
-          const results: TrialResult[] = res.results.map((r: any) => ({
-            nctId: r.nctId || '',
-            title: r.title || '',
+        const res = await postChat({ type: 'message', text, user_id: userId });
+        if (res?.trials && Array.isArray(res.trials) && res.trials.length > 0) {
+          const results: TrialResult[] = res.trials.map((r: any) => ({
+            nctId: r.nct_id || r.nctId || '',
+            title: r.brief_title || r.title || '',
             condition: r.condition || '',
             phase: r.phase || '',
             location: r.location || '',
-            url: r.url || '',
+            url: r.url || `https://clinicaltrials.gov/study/${r.nct_id || r.nctId}`,
           }));
-          setMessages((prev: Message[]) => [...prev, { id: Date.now() + 1, from: 'bot', text: `I found ${results.length} trials for "${text}".`, time: new Date().toLocaleTimeString(), results }]);
+          const botText = res?.response || `I found ${results.length} trials for "${text}".`;
+          setMessages((prev: Message[]) => [...prev, { id: Date.now() + 1, from: 'bot', text: botText, time: new Date().toLocaleTimeString(), results }]);
         } else {
-          const botText = res?.reply || `I found several trials related to \"${text}\". Would you like me to filter by location or phase?`;
+          const botText = res?.response || `I found several trials related to \"${text}\". Would you like me to filter by location or phase?`;
           setMessages((prev: Message[]) => [...prev, { id: Date.now() + 1, from: 'bot', text: botText, time: new Date().toLocaleTimeString() }]);
         }
       } catch (err) {
