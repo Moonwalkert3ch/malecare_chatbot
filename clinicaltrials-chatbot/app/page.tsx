@@ -368,12 +368,12 @@ export default function ChatPage() {
                     {/* State */}
                     <div>
                       <label className="block text-sm font-semibold mb-2">3. What city and state are you located in?</label>
-                      <Input type="text" placeholder="Enter your state" value={formData.state} onChange={(e) => handleFormChange("state", e.target.value)} required />
+                      <Input type="text" placeholder="Enter your city and/or state" value={formData.state} onChange={(e) => handleFormChange("state", e.target.value)} required />
                     </div>
 
                     {/* Cancer Type */}
                     <div>
-                      <label className="block text-sm font-semibold mb-2">4. Select the type of cancer are you looking for a trial for?</label>
+                      <label className="block text-sm font-semibold mb-2">4. Select the type of cancer you are looking for a trial for?</label>
                       <select value={formData.cancerType} onChange={(e) => handleFormChange("cancerType", e.target.value)} className="w-full border rounded px-3 py-2" required>
                         <option value="">Select cancer type...</option>
                         <option value="Lung">Lung</option>
@@ -397,7 +397,7 @@ export default function ChatPage() {
                     {/* Comorbidities */}
                     <div>
                       <label className="block text-sm font-semibold mb-2">6. List any other diseases or medical conditions you have:</label>
-                      <Input type="text" placeholder="Enter medical condition" value={formData.comorbidities} onChange={(e) => handleFormChange("comorbidities", e.target.value)} required />
+                      <Input type="text" placeholder="Enter medical condition(s)" value={formData.comorbidities} onChange={(e) => handleFormChange("comorbidities", e.target.value)} required />
                     </div>
 
                     {/* Prior Treatments */}
