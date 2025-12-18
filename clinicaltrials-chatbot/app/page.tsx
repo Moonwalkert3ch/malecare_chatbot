@@ -373,7 +373,7 @@ export default function ChatPage() {
 
                     {/* Cancer Type */}
                     <div>
-                      <label className="block text-sm font-semibold mb-2">4. Select the type of cancer you are looking for a trial for?</label>
+                      <label className="block text-sm font-semibold mb-2">4. Select the type of cancer you are looking for a trial for</label>
                       <select value={formData.cancerType} onChange={(e) => handleFormChange("cancerType", e.target.value)} className="w-full border rounded px-3 py-2" required>
                         <option value="">Select cancer type...</option>
                         <option value="Lung">Lung</option>
