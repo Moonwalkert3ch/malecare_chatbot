@@ -37,16 +37,272 @@ MaleCare_ChatBot/
 - ClinicalTrials.gov API v2
 
 **Frontend:**
-- Next.js 16
-- React with TypeScript
-- Shadcn UI components
-- Tailwind CSS
+* **Next.js** (App Router)
+* **React** (Client Components)
+* **TypeScript**
+* **Tailwind CSS** (styling)
+* **shadcn/ui** components
+* **Lucide Icons**
+* **Lottie animations**
 
 **ML/AI:**
 - Intent Classification Model (greeting, find_trials, goodbye)
 - Named Entity Recognition (NER) for medical entities
 
 ---
+
+# Clinical Trials Chatbot – Frontend
+
+This repository contains the **frontend** for the Clinical Trials Chatbot application. The frontend is built with **Next.js (App Router)** and **Tailwind CSS**, deployed on **Vercel**, and connected to a FastAPI backend hosted on **Render**.
+
+This README is written for **future clients or developers** who may want to update styling, layout, or UI behavior — especially using **Tailwind CSS** — without touching backend logic.
+
+---
+
+
+## 🚀 Deployment Overview
+
+### Frontend Hosting
+
+* Deployed on **Vercel**
+* Automatic deployments on push (depending on project settings)
+
+### Backend Connection
+
+* The frontend communicates with a FastAPI backend deployed on **Render**
+* The backend URL is injected via an **environment variable** (see below)
+
+---
+
+## 🔑 Environment Variables (IMPORTANT)
+
+The frontend relies on the following environment variable to communicate with the backend:
+
+```env
+NEXT_PUBLIC_API_BASE_URL=(https://malecare-chatbot.onrender.com)
+```
+
+### Key Notes:
+
+* This variable **must** be prefixed with `NEXT_PUBLIC_` so it is available in the browser
+* No trailing slash (`/`) should be added
+* After changing this variable in Vercel, the app **must be redeployed**
+
+The variable is used internally in:
+
+```
+lib/api.ts
+```
+
+This file centralizes all backend communication. Styling changes **do not require editing this file**.
+
+---
+
+## 🎨 Styling Guide (Tailwind CSS)
+
+All styling in this project is handled using **Tailwind CSS utility classes**. No traditional CSS files are required for layout or design changes.
+
+### Where Styling Lives
+
+Most visual styling can be modified in:
+
+```
+app/page.tsx
+```
+
+Additional reusable UI components live in:
+
+```
+components/
+```
+
+Examples:
+
+* `components/ui/button.tsx`
+* `components/ui/card.tsx`
+* `components/ui/input.tsx`
+
+These are safe places to customize spacing, colors, fonts, borders, and animations.
+
+---
+
+## 🧩 Common Styling Changes (Examples)
+
+### 1. Changing Colors
+
+Tailwind color utilities are used throughout the app.
+
+Example:
+
+```tsx
+<Button className="bg-[#1159af] text-teal-300 hover:bg-red-300">
+```
+
+To change the button color:
+
+```tsx
+<Button className="bg-green-600 text-white hover:bg-green-700">
+```
+
+You can use:
+
+* Tailwind default colors (`bg-blue-500`, `text-gray-700`, etc.)
+* Custom hex values (`bg-[#123456]`)
+
+---
+
+### 2. Changing Spacing & Layout
+
+Spacing is controlled with Tailwind utilities like:
+
+* `p-4` → padding
+* `m-6` → margin
+* `gap-4` → spacing between elements
+
+Example:
+
+```tsx
+<div className="flex flex-col gap-8 p-6">
+```
+
+To tighten spacing:
+
+```tsx
+<div className="flex flex-col gap-4 p-4">
+```
+
+---
+
+### 3. Fonts & Text Sizes
+
+Text styling uses Tailwind typography utilities:
+
+```tsx
+<h1 className="text-2xl font-bold text-[#1159af]">
+```
+
+Change size or weight:
+
+```tsx
+<h1 className="text-3xl font-semibold text-gray-800">
+```
+
+---
+
+### 4. Rounded Corners & Shadows
+
+Cards and chat bubbles use rounded corners and shadows:
+
+```tsx
+className="rounded-2xl shadow-xl"
+```
+
+Options include:
+
+* `rounded-lg`, `rounded-xl`, `rounded-2xl`
+* `shadow`, `shadow-md`, `shadow-lg`
+
+---
+
+### 5. Animations
+
+Basic animations use Tailwind utility classes:
+
+```tsx
+animate-fadeIn
+```
+
+These can be adjusted or removed safely without affecting functionality.
+
+---
+
+## 💬 Chat UI Customization
+
+### Chat Bubble Styling
+
+Chat bubbles are styled conditionally:
+
+```tsx
+m.from === "user" ? "bg-blue-100" : "bg-red-300"
+```
+
+To change bot/user colors, modify these classes.
+
+---
+
+### Avatars
+
+User and bot avatars are simple styled divs:
+
+```tsx
+<div className="h-12 w-12 rounded-full bg-red-300">
+```
+
+You can:
+
+* Change background color
+* Replace with images
+* Replace with icons
+
+No backend changes required.
+
+---
+
+## 🧪 Safe vs Unsafe Changes
+
+### ✅ Safe Changes
+
+* Tailwind classes
+* Layout structure
+* Colors, fonts, spacing
+* Text content
+* Animations
+* Lottie animations
+
+### ⚠️ Changes to Make Carefully
+
+* `lib/api.ts`
+* `user_id` generation logic
+* Request payload shapes
+* Environment variable names
+
+If modifying API-related files, backend coordination is required.
+
+---
+
+## 🛠 Local Development
+
+```bash
+npm install
+npm run dev
+```
+
+By default, the frontend will attempt to connect to:
+
+```
+http://localhost:8000
+```
+
+Override this with:
+
+```env
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+```
+
+---
+
+## 📦 Summary
+
+* The frontend is **fully decoupled** from the backend
+* Styling is controlled entirely via **Tailwind CSS**
+* Backend connectivity is managed through **one environment variable**
+* Safe UI updates can be made without touching backend logic
+
+This setup allows for rapid design changes while keeping the backend stable and secure.
+
+---
+
+For questions or future enhancements, consult the development team or refer to the backend documentation.
 
 ## 🚀 Quick Start
 
@@ -62,9 +318,10 @@ MaleCare_ChatBot/
 #### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/aallm004/MaleCare_ChatBot.git
-cd MaleCare_ChatBot
+git clone https://github.com/Moonwalkert3ch/malecare_chatbot.git
+cd malecare_chatBot
 ```
+
 
 #### 2. Backend Setup
 
