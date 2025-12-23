@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import LottiePlayer from "@/components/LottiePlayer";
-import { X } from "lucide-react";
+import { X, RotateCcw } from "lucide-react";
 
 export default function ChatPage() {
   // Generate unique user_id for this session
@@ -40,6 +40,41 @@ export default function ChatPage() {
   const [scrollPercent, setScrollPercent] = useState(100);
   const [sliderLength, setSliderLength] = useState(240);
   const [connectionStatus, setConnectionStatus] = useState<string | null>(null);
+
+  // Function to restart/reset the chat
+  function restartChat() {
+    setMessages([
+      { id: 1, from: "bot", text: "Hello! I am Carrie, your clinical trial finder chatbot. Let's find you a trial!", time: new Date().toLocaleTimeString() },
+    ]);
+    setShowQuestionnaire(false);
+    setFormData({
+      gender: "",
+      age: "",
+      state: "",
+      cancerType: "",
+      cancerStage: "",
+      comorbidities: "",
+      priorTreatments: "",
+    });
+    setInputValue("");
+    
+    // Re-trigger the greeting sequence after restart
+    setTimeout(() => {
+      setMessages((m) => [
+        ...m,
+        {
+          id: Date.now(),
+          from: "bot",
+          text: "First, if you don't mind, let me ask you just seven questions to narrow down our choices. Do your best to answer, and then, press the find a trial button.",
+          time: new Date().toLocaleTimeString(),
+        },
+      ]);
+    }, 3000);
+
+    setTimeout(() => {
+      setShowQuestionnaire(true);
+    }, 15000);
+  }
 
   // Greet and trigger questionnaire after chat opens
   useEffect(() => {
@@ -298,7 +333,17 @@ export default function ChatPage() {
             className="mx-auto max-w-xs"
           />
 
-          <h1 className="text-2xl font-bold text-center text-[#1159af] animate-fadeIn">Chat with Bot Carrie</h1>
+          <div className="flex items-center justify-center gap-4 w-full max-w-md">
+            <h1 className="text-2xl font-bold text-center text-[#1159af] animate-fadeIn">Chat with Bot Carrie</h1>
+            <Button
+              onClick={restartChat}
+              className="bg-[#1159af] hover:bg-red-300 text-teal-300 flex items-center gap-2"
+              title="Restart Chat"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Restart Chat
+            </Button>
+          </div>
 
           <div className="relative max-w-md mx-auto w-full">
             <Card className="p-2 space-y-2 w-full animate-fadeIn">
