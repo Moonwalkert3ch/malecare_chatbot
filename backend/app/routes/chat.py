@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import List, Optional
 import logging
-from app.services import nlp, clinicaltrials_api
+from app.services import nlp, clinicaltrials_api, usage_tracker
 from app.core.state import active_states, ConversationState
 
 logger = logging.getLogger(__name__)
@@ -48,6 +48,18 @@ async def submit_intake(intake: IntakeForm):
     # Persist state
     active_states[intake.user_id] = state
 
+    # Track usage statistics
+    usage_tracker.track_intake_form(
+        user_id=intake.user_id,
+        age=intake.age,
+        location=intake.location,
+        gender=intake.sex,
+        cancer_type=intake.cancer_type,
+        cancer_stage=intake.stage,
+        comorbidities=intake.comorbidities or [],
+        prior_treatments=intake.prior_treatments or []
+    )
+
     # Automatically search for clinical trials using the REAL API
     logger.info(f"Searching for {intake.cancer_type} trials in {intake.location}")
     trials = await clinicaltrials_api.search_clinical_trials(
@@ -59,6 +71,9 @@ async def submit_intake(intake: IntakeForm):
 
     # Store trials in state
     state.last_trials = trials
+
+    # Track number of trials found
+    usage_tracker.track_trials_found(intake.user_id, len(trials))
 
     # Build response message
     if trials:
@@ -96,6 +111,9 @@ async def handle_message(msg: MessageRequest):
 
     # Retrieve or initialize user state
     state = active_states.get(user_id, ConversationState())
+
+    # Track message
+    usage_tracker.track_message(user_id)
 
     # Check if intake is complete before processing
     if not state.intake_complete:
@@ -152,6 +170,9 @@ async def handle_message(msg: MessageRequest):
 async def end_session(req: EndSessionRequest):
     """Clear all session data when user exits."""
     user_id = req.user_id
+    
+    # Track session end
+    usage_tracker.track_session_end(user_id)
     
     if user_id in active_states:
         del active_states[user_id]
