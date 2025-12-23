@@ -36,6 +36,7 @@ After deploying these updates (see deployment steps below):
 - View usage dashboard
 - Download CSV reports
 - Export data to Google Sheets
+- Also check https://vercel.com/docs/pricing/manage-and-optimize-usage for directions
 - If the above doesn't work, please check the USAGE_STATISTICS_GUIDE.md
 
 ---
