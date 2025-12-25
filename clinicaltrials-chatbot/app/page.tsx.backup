@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import LottiePlayer from "@/components/LottiePlayer";
-import { X, RotateCcw } from "lucide-react";
+import { X } from "lucide-react";
 
 export default function ChatPage() {
   // Generate unique user_id for this session
@@ -40,41 +40,6 @@ export default function ChatPage() {
   const [scrollPercent, setScrollPercent] = useState(100);
   const [sliderLength, setSliderLength] = useState(240);
   const [connectionStatus, setConnectionStatus] = useState<string | null>(null);
-
-  // Function to restart/reset the chat
-  function restartChat() {
-    setMessages([
-      { id: 1, from: "bot", text: "Hello! I am Carrie, your clinical trial finder chatbot. Let's find you a trial!", time: new Date().toLocaleTimeString() },
-    ]);
-    setShowQuestionnaire(false);
-    setFormData({
-      gender: "",
-      age: "",
-      state: "",
-      cancerType: "",
-      cancerStage: "",
-      comorbidities: "",
-      priorTreatments: "",
-    });
-    setInputValue("");
-    
-    // Re-trigger the greeting sequence after restart
-    setTimeout(() => {
-      setMessages((m) => [
-        ...m,
-        {
-          id: Date.now(),
-          from: "bot",
-          text: "First, if you don't mind, let me ask you just seven questions to narrow down our choices. Do your best to answer, and then, press the find a trial button.",
-          time: new Date().toLocaleTimeString(),
-        },
-      ]);
-    }, 3000);
-
-    setTimeout(() => {
-      setShowQuestionnaire(true);
-    }, 15000);
-  }
 
   // Greet and trigger questionnaire after chat opens
   useEffect(() => {
@@ -431,50 +396,39 @@ export default function ChatPage() {
 
                     {/* Comorbidities */}
                     <div>
-                      <label className="block text-sm font-semibold mb-2">6. List any other diseases or medical conditions you have (type 0 if none):</label>
+                      <label className="block text-sm font-semibold mb-2">6. List any other diseases or medical conditions you have:</label>
                       <Input type="text" placeholder="Enter medical condition(s)" value={formData.comorbidities} onChange={(e) => handleFormChange("comorbidities", e.target.value)} required />
                     </div>
 
                     {/* Prior Treatments */}
                     <div>
-                      <label className="block text-sm font-semibold mb-2">7. What kind of treatments have you done for your current cancer (type 0 if none)?</label>
+                      <label className="block text-sm font-semibold mb-2">7. What kind of treatments have you done for your current cancer?</label>
                       <Input type="text" placeholder="Enter prior treatments" value={formData.priorTreatments} onChange={(e) => handleFormChange("priorTreatments", e.target.value)} required />
                     </div>
-                    <Button className="mt-4 w-full bg-[#1159af] text-teal-300 hover:bg-[#0d478f]" onClick={submitQuestionnaire}>Find a Trial</Button>
+                    <Button className="mt-4 w-full bg-[#1159af] text-teal-300 hover:bg-red-300" onClick={submitQuestionnaire}>Find a Trial</Button>
                   </div>
                 </CardContent>
               )}
 
               <form onSubmit={handleSubmit} className="flex gap-2">
               <Input value={inputValue} onChange={(e) => setInputValue(e.target.value)} placeholder="Ask about a clinical trial..." />
-              <Button type="submit" className="bg-[#1159af] text-teal-300 hover:bg-[#0d478f]">Send</Button>
+              <Button type="submit" className="bg-[#1159af] text-teal-300 hover:bg-red-300">Send</Button>
               </form>
-
-              {/* Restart Chat Button - Below Send Button */}
-              <Button
-                onClick={restartChat}
-                className="w-full bg-[#1159af] hover:bg-[#0d478f] text-teal-300 flex items-center justify-center gap-2"
-                title="Restart Chat"
-              >
-                <RotateCcw className="h-4 w-4" />
-                Restart Chat
-              </Button>
-
-              {/* Disclaimer footer below the input */}
-              <div className="mt-3 text-xs text-muted-foreground text-center px-2">
-                <p>
-                  <b>Disclaimer:</b> This chatbot does not provide medical advice. We encourage you to discuss all results and further questions with a clinician. Clinical trial information is taken from{' '}
-                  <a
-                    href="https://clinicaltrials.gov/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary underline"
-                  >
-                    clinicaltrials.gov
-                  </a>
-                  .
-                </p>
-              </div>
+                        {/* Disclaimer footer below the input */}
+                        <div className="mt-3 text-xs text-muted-foreground text-center px-2">
+                          <p>
+                            <b>Disclaimer:</b> This chatbot does not provide medical advice. We encourage you to discuss all results and further questions with a clinician. Clinical trial information is taken from{' '}
+                            <a
+                              href="https://clinicaltrials.gov/"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary underline"
+                            >
+                              clinicaltrials.gov
+                            </a>
+                            .
+                          </p>
+                        </div>
             </Card>
 
             {/* Hidden input for arrow key scroll control */}
