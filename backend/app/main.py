@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import health, chat
+from app.routes import health, chat, admin
 from app.services import nlp
 
 app = FastAPI(
@@ -41,3 +41,4 @@ async def startup_event():
 # Include routers
 app.include_router(health.router)
 app.include_router(chat.router)
+app.include_router(admin.router)

@@ -1,505 +1,272 @@
-# MaleCare Clinical Trials Chatbot 🏥
+# MaleCare Clinical Trials Chatbot
 
-AI-powered chatbot that helps cancer patients find relevant clinical trials using BioClinicalBERT NLP models and the ClinicalTrials.gov API.
-
-## 🎯 Overview
-
-MaleCare ChatBot is a full-stack application designed to help cancer patients discover clinical trials that match their specific medical profile. The system uses natural language processing to understand patient queries and matches them with appropriate clinical trials.
-
-### Key Features
-
-- **Patient Intake System**: Structured form to collect patient medical information
-- **NLP-Powered Chat**: BioClinicalBERT models for intent classification and entity extraction
-- **Clinical Trial Matching**: Integration with ClinicalTrials.gov API
-- **Conversation State Management**: Maintains context throughout the conversation
-- **Interactive UI**: Modern Next.js/React frontend with real-time chat interface
+AI-powered chatbot that helps cancer patients find relevant clinical trials.
 
 ---
 
-## 🏗️ Architecture
+## 🚀 For Darryl: WordPress Deployment & Usage
+
+### Adding the Chatbot to WordPress
+
+Add the chatbot to your WordPress site:
+
+1. **Go to WordPress**:
+   - Open your WordPress page editor
+   - Switch to "Text" or "HTML" mode
+
+2. **Add This Code** where you want the chatbot:
+   ```html
+   <iframe 
+     src="https://malecarechatbot.vercel.app" 
+     width="100%" 
+     height="800px" 
+     frameborder="0"
+     title="Clinical Trials Chatbot">
+   </iframe>
+   ```
+
+3. **Adjust Size** (optional):
+   - Change `height="800px"` to make it taller/shorter
+   - Change `width="100%"` to a specific width like `"800px"`
+
+### Accessing Usage Statistics (in development)
+
+After deploying these updates (see deployment steps below):
+- Visit https://malecarechatbot.vercel.app/admin to:
+- View usage dashboard
+- Download CSV reports
+- Export data to Google Sheets
+- Also check https://vercel.com/docs/pricing/manage-and-optimize-usage for directions
+- If the above doesn't work, please check the USAGE_STATISTICS_GUIDE.md
+
+---
+
+## 💻 Getting Started: Clone, Test, and Deploy
+
+### Step 1: Clone the Repository
+
+1. **Install VS Code**:
+   - Download from https://code.visualstudio.com/
+   - Install on your computer
+
+2. **Clone This Repository**:
+   - Open VS Code
+   - Press `Ctrl+Shift+P` (Windows) or `Cmd+Shift+P` (Mac)
+   - Type "Git: Clone" and press Enter
+   - Paste: `https://github.com/Moonwalkert3ch/malecare_chatbot.git`
+   - Choose where to save it on your computer
+   - Click "Open" when prompted
+
+### Step 2: Test Locally
+
+1. **Open Terminal in VS Code**:
+   - Click "Terminal" menu → "New Terminal"
+
+2. **Start the Backend**:
+   ```bash
+   cd backend
+   pip install -r requirements.txt
+   uvicorn app.main:app --reload
+   ```
+   - Wait for "Application startup complete"
+
+3. **Open Second Terminal**:
+   - Click the `+` button in terminal panel
+
+4. **Start the Frontend**:
+   ```bash
+   cd clinicaltrials-chatbot
+   npm install
+   npm run dev
+   ```
+   - Wait for "Ready" message
+
+5. **Test in Browser**:
+   - Open http://localhost:3000
+   - Test the chatbot
+   - Check admin dashboard at http://localhost:3000/admin
+
+6. **Make Changes**:
+   - Edit files in VS Code
+   - Save (they auto-refresh in browser)
+   - Test to ensure everything works
+
+### Step 3: Deploy to Vercel
+
+1. **Create Vercel Account**:
+   - Go to https://vercel.com/
+   - Sign up with GitHub
+
+2. **Import Project**:
+   - Click "Add New..." → "Project"
+   - Select "Import Git Repository"
+   - Choose `malecare_chatbot`
+   - Click "Import"
+
+3. **Configure**:
+   - **Framework Preset**: Next.js
+   - **Root Directory**: `clinicaltrials-chatbot`
+   - Click "Deploy"
+
+4. **Your URL**:
+   - The chatbot is live at https://malecarechatbot.vercel.app
+   - Use this URL in the WordPress iframe above
+
+**Note**: The backend (FastAPI) needs separate deployment. See Backend Deployment section below.
+
+---
+
+## 🔧 Backend Deployment Options
+
+The FastAPI backend can be deployed alongside your Vercel frontend:
+
+### Option 1: Vercel (Recommended - keeps everything together)
+- Deploy backend as Vercel Serverless Functions
+- Same platform as frontend
+- See `clinicaltrials-chatbot/DEPLOYMENT.md` for details
+
+### Option 2: Render.com (Alternative)
+- Free tier available
+- Easy Python deployments
+- Connect your GitHub repo
+
+### Option 3: Railway.app (Alternative)
+- Simple setup
+- Auto-deploys from GitHub
+- Good for small projects
+
+**Important**: After backend is deployed, update the frontend's API URL in `clinicaltrials-chatbot/lib/api.ts` to point to your backend URL.
+
+---
+
+## ✨ New Features
+
+### Restart Chat Button
+Users can restart their conversation at any time with a single click.
+
+### Usage Statistics Tracking
+- Automatically tracks user demographics (age, gender, location)
+- Records cancer types and stages searched
+- Counts messages sent and trials found
+- Simple CSV export for Google Sheets
+- Admin dashboard at `/admin`
+
+### What's Tracked?
+- User age, gender, and location
+- Cancer type and stage
+- Number of messages sent
+- Number of trials found
+- Session duration
+
+**For Admin:** Visit `/admin` page, click "Download CSV", upload to Google Sheets. Simple!
+
+---
+
+## 📖 Documentation
+
+- **[USAGE_STATISTICS_GUIDE.md](./USAGE_STATISTICS_GUIDE.md)** - How to use the admin dashboard
+- **[DATABASE_IMPLEMENTATION_GUIDE.md](./DATABASE_IMPLEMENTATION_GUIDE.md)** - For webmasters: switching to database storage
+- **[clinicaltrials-chatbot/DEPLOYMENT.md](./clinicaltrials-chatbot/DEPLOYMENT.md)** - Detailed deployment instructions
+
+---
+
+## 🏗️ Project Structure
 
 ```
 MaleCare_ChatBot/
-├── backend/              # FastAPI backend service
-│   ├── app/             # Application code
-│   ├── tests/           # Automated tests
-│   └── ML_Code/         # NLP model training
-├── clinicaltrials-chatbot/  # Next.js frontend
-└── models/              # Trained ML models
+├── backend/                    # FastAPI backend
+│   ├── app/
+│   │   ├── routes/            # API endpoints
+│   │   │   ├── chat.py        # Chat functionality
+│   │   │   ├── admin.py       # Admin dashboard endpoints
+│   │   │   └── health.py      # Health check
+│   │   └── services/
+│   │       ├── usage_tracker.py    # NEW: Usage statistics
+│   │       └── clinicaltrials_api.py
+│   └── usage_stats.json       # Usage data storage
+├── clinicaltrials-chatbot/    # Next.js frontend
+│   └── app/
+│       ├── page.tsx           # Main chatbot page
+│       └── admin/
+│           └── page.tsx       # NEW: Admin dashboard
+└── models/                    # ML models
 ```
-
-### Technology Stack
-
-**Backend:**
-- FastAPI (Python web framework)
-- BioClinicalBERT (NLP models)
-- PyTorch & Transformers
-- ClinicalTrials.gov API v2
-
-**Frontend:**
-- Next.js 16
-- React with TypeScript
-- Shadcn UI components
-- Tailwind CSS
-
-**ML/AI:**
-- Intent Classification Model (greeting, find_trials, goodbye)
-- Named Entity Recognition (NER) for medical entities
 
 ---
 
-## 🚀 Quick Start
+## 💻 Technology Stack
+
+**Backend:**
+- FastAPI (Python)
+- ClinicalTrials.gov API v2
+- BioClinicalBERT NLP models
+
+**Frontend:**
+- Next.js 16
+- React
+- TypeScript
+- Tailwind CSS
+
+---
+
+## 🔧 Development Setup
 
 ### Prerequisites
+- Python 3.8+
+- Node.js 18+
+- npm or yarn
 
-- **Python 3.10+** (for backend)
-- **Node.js 18+** (for frontend)
-- **pip** (Python package manager)
-- **npm** (Node package manager)
-
-### Installation & Setup
-
-#### 1. Clone the Repository
-
+### Backend Setup
 ```bash
-git clone https://github.com/aallm004/MaleCare_ChatBot.git
-cd MaleCare_ChatBot
-```
-
-#### 2. Backend Setup
-
-```powershell
-# Navigate to backend directory
 cd backend
-
-# Install Python dependencies
 pip install -r requirements.txt
-
-# Start the backend server
-uvicorn app.main:app --reload
+python -m uvicorn app.main:app --reload
 ```
+Backend runs at: http://localhost:8000
 
-The backend API will be available at **http://localhost:8000**
-
-#### 3. Frontend Setup (Optional)
-
-```powershell
-# Open a new terminal
+### Frontend Setup
+```bash
 cd clinicaltrials-chatbot
-
-# Install Node dependencies
 npm install
-
-# Start the development server
 npm run dev
 ```
+Frontend runs at: http://localhost:3000
 
-The frontend will be available at **http://localhost:3000**
+### Admin Dashboard
+Visit: http://localhost:3000/admin
+
+---
+
+## 📊 Usage Data Storage
+
+**Current:** JSON file (`backend/usage_stats.json`)
+- Simple, works great for testing
+- Data persists when server restarts
+- Download CSV backups regularly
+
+**For Production:** See [DATABASE_IMPLEMENTATION_GUIDE.md](./DATABASE_IMPLEMENTATION_GUIDE.md)
+- Options: PostgreSQL, MySQL, MongoDB
+- Your webmaster can choose based on needs
+- Easy migration path provided
 
 ---
 
 ## 🧪 Testing
 
-### Automated Tests (Recommended)
+### Test the Chatbot
+1. Start both servers (backend and frontend)
+2. Visit http://localhost:3000
+3. Fill out the questionnaire
+4. Send messages
+5. Click "Restart Chat" button to reset
 
-The backend includes a comprehensive test suite with 8 automated tests covering all major functionality.
-
-```powershell
-# Navigate to backend directory
-cd backend
-
-# Run all tests
-pytest tests/test_endpoints.py -v
-
-# Run with coverage report
-pytest tests/test_endpoints.py -v --cov=app --cov-report=html
-
-# Run specific test
-pytest tests/test_endpoints.py::test_full_conversation_flow -v -s
-```
-
-**Test Coverage:**
-- ✅ Health check endpoint
-- ✅ Patient intake form submission
-- ✅ Message handling and validation
-- ✅ Greeting intent recognition
-- ✅ Clinical trial search functionality
-- ✅ Goodbye intent recognition
-- ✅ Session management
-- ✅ Full end-to-end conversation flow
-
-### Interactive Testing
-
-#### Option 1: Browser API Documentation (Easiest!)
-
-1. Start the backend server:
-   ```powershell
-   cd backend
-   uvicorn app.main:app --reload
-   ```
-
-2. Open your browser and navigate to:
-   - **Swagger UI**: http://localhost:8000/docs
-   - **ReDoc**: http://localhost:8000/redoc
-
-3. Click on any endpoint, click "Try it out", fill in the form, and see results!
-
-#### Option 2: PowerShell Test Script
-
-```powershell
-# Terminal 1: Start the server
-cd backend
-uvicorn app.main:app --reload
-
-# Terminal 2: Run test script
-cd backend
-.\test_api.ps1
-```
-
-This script automatically tests all endpoints and displays colorful results.
-
-#### Option 3: Interactive Python Tester
-
-```powershell
-# Terminal 1: Start the server
-cd backend
-uvicorn app.main:app --reload
-
-# Terminal 2: Run interactive tester
-cd backend
-python interactive_test.py
-```
-
-Follow the prompts to:
-1. Enter patient information
-2. Chat with the bot
-3. See trial results in real-time
-
-#### Option 4: Manual API Testing
-
-With the server running, use curl or any HTTP client:
-
-```powershell
-# Health check
-curl http://localhost:8000/health
-
-# Submit intake form
-curl -X POST http://localhost:8000/intake -H "Content-Type: application/json" -d '{\"user_id\":\"test123\",\"cancer_type\":\"breast cancer\",\"stage\":\"stage 2\",\"age\":45,\"sex\":\"female\",\"location\":\"California\"}'
-
-# Send a message
-curl -X POST http://localhost:8000/message -H "Content-Type: application/json" -d '{\"user_id\":\"test123\",\"message\":\"Find me trials in Los Angeles\"}'
-
-# End session
-curl -X POST http://localhost:8000/end-session -H "Content-Type: application/json" -d '{\"user_id\":\"test123\"}'
-```
+### Test Admin Dashboard
+1. Visit http://localhost:3000/admin
+2. View usage statistics
+3. Click "Download CSV for Google Sheets"
+4. Upload CSV to Google Sheets to analyze data
 
 ---
 
-## 📡 API Endpoints
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/health` | GET | Health check - verify server is running |
-| `/intake` | POST | Submit patient intake form |
-| `/message` | POST | Send a chat message to the bot |
-| `/end-session` | POST | Clear user session data |
 
-### Example API Flow
-
-```json
-// 1. Submit Intake Form
-POST /intake
-{
-  "user_id": "user123",
-  "cancer_type": "breast cancer",
-  "stage": "stage 2",
-  "age": 45,
-  "sex": "female",
-  "location": "California",
-  "comorbidities": ["diabetes"],
-  "prior_treatments": ["chemotherapy"]
-}
-
-// 2. Send Chat Message
-POST /message
-{
-  "user_id": "user123",
-  "message": "Find me clinical trials in Los Angeles"
-}
-
-// 3. End Session
-POST /end-session
-{
-  "user_id": "user123"
-}
-```
-
----
-
-## 🤖 NLP Models
-
-The chatbot uses two fine-tuned BioClinicalBERT models:
-
-### Intent Classification Model
-- **Location**: `models/intent_model/`
-- **Purpose**: Classifies user intent into categories
-- **Intents**: 
-  - `greeting`: "Hello", "Hi there"
-  - `find_trials`: "Find me trials", "Show me studies"
-  - `goodbye`: "Thanks, bye"
-
-### Named Entity Recognition (NER) Model
-- **Location**: `models/ner_model/`
-- **Purpose**: Extracts medical entities from user messages
-- **Entities**:
-  - `CANCER_TYPE`: breast cancer, lung cancer, etc.
-  - `LOCATION`: California, New York, etc.
-  - `AGE`: numeric age values
-  - `SEX`: male, female
-
-### Training the Models (Optional)
-
-```powershell
-cd ML_Code
-python train_models.py
-```
-
-**Note**: The chatbot works without trained models by using fallback logic and intake form context. Training models improves natural language understanding.
-
----
-
-## 🔧 Recent Changes & Bug Fixes
-
-### Bug Fixes (November 28, 2025)
-
-1. **Fixed NameError in ClinicalTrials API** (`clinicaltrials_api.py`)
-   - Changed undefined variable `condition` to `cancer_type`
-   - Resolved crash when querying for trials
-
-2. **Fixed NLP Model Loading Paths** (`nlp.py`)
-   - Updated relative paths to absolute paths using `pathlib.Path`
-   - Added graceful fallback when models don't exist
-   - Server no longer crashes if models aren't trained
-
-3. **Fixed Test Import Issues** 
-   - Added `conftest.py` for proper pytest configuration
-   - Created `tests/__init__.py` to make tests a proper Python package
-   - Tests now run correctly from backend directory
-
-### New Features & Improvements
-
-1. **Comprehensive Test Suite**
-   - 8 automated tests covering all endpoints
-   - Full conversation flow testing
-   - Error handling validation
-
-2. **Testing Tools**
-   - `interactive_test.py`: Interactive command-line tester
-   - `test_api.ps1`: PowerShell script for quick API testing
-   - Pytest configuration for easy test execution
-
-3. **Documentation**
-   - `backend/README.md`: Detailed backend documentation
-   - `backend/TESTING_GUIDE.md`: Complete testing instructions
-   - `backend/TESTING_SUMMARY.md`: Test results and findings
-   - Updated project-level README (this file)
-
-4. **Improved Requirements**
-   - Added all missing dependencies (torch, transformers, pytest)
-   - Organized requirements with comments
-   - Version pinning for stability
-
----
-
-## 📁 Project Structure
-
-```
-MaleCare_ChatBot/
-├── backend/
-│   ├── app/
-│   │   ├── main.py                    # FastAPI application entry point
-│   │   ├── core/
-│   │   │   └── state.py              # Conversation state management
-│   │   ├── routes/
-│   │   │   ├── chat.py               # Chat endpoints
-│   │   │   └── health.py             # Health check
-│   │   ├── services/
-│   │   │   ├── nlp.py                # NLP model inference
-│   │   │   └── clinicaltrials_api.py # API client
-│   │   └── utils/
-│   │       └── config.py             # Configuration
-│   ├── tests/
-│   │   ├── __init__.py
-│   │   └── test_endpoints.py         # Comprehensive test suite
-│   ├── conftest.py                    # Pytest configuration
-│   ├── interactive_test.py            # Interactive tester
-│   ├── test_api.ps1                   # PowerShell test script
-│   ├── requirements.txt               # Python dependencies
-│   ├── README.md                      # Backend documentation
-│   ├── TESTING_GUIDE.md              # Testing instructions
-│   └── TESTING_SUMMARY.md            # Test results
-├── clinicaltrials-chatbot/
-│   ├── app/
-│   │   ├── page.tsx                  # Main chat interface
-│   │   ├── layout.tsx
-│   │   └── globals.css
-│   ├── components/
-│   │   ├── LottiePlayer.tsx
-│   │   └── ui/                       # Shadcn UI components
-│   ├── package.json
-│   └── next.config.ts
-├── ML_Code/
-│   ├── clinical_trial_nlp_model.py   # Model architecture
-│   ├── train_models.py               # Training script
-│   ├── intent_training_data.json     # Intent classification data
-│   └── ner_training_data.json        # NER training data
-├── models/
-│   ├── intent_model/                 # Trained intent classifier
-│   └── ner_model/                    # Trained NER model
-└── README.md                          # This file
-```
-
----
-
-## 🐛 Troubleshooting
-
-### Common Issues & Solutions
-
-#### "uvicorn: The term 'uvicorn' is not recognized"
-
-**Solution**: Install dependencies
-```powershell
-cd backend
-pip install -r requirements.txt
-```
-
-#### "ModuleNotFoundError: No module named 'app'"
-
-**Solution**: Run pytest from the backend directory, not the tests directory
-```powershell
-cd backend  # Not backend/tests
-pytest tests/test_endpoints.py -v
-```
-
-#### "Cannot connect to server" (when testing)
-
-**Solution**: Make sure the server is running in a separate terminal
-```powershell
-# Terminal 1
-uvicorn app.main:app --reload
-
-# Terminal 2
-python interactive_test.py
-```
-
-#### "Port 8000 already in use"
-
-**Solution**: Either close the existing server or use a different port
-```powershell
-uvicorn app.main:app --reload --port 8001
-```
-
-#### "NLP models not loaded"
-
-**Solution**: This is expected if you haven't trained the models. The chatbot will work with fallback logic. To train models:
-```powershell
-cd ML_Code
-python train_models.py
-```
-
----
-
-## 📊 Test Results
-
-### Latest Test Run (November 28, 2025)
-
-```
-======================== test session starts =========================
-collected 8 items
-
-tests/test_endpoints.py::test_health PASSED                   [ 12%]
-tests/test_endpoints.py::test_intake_submission PASSED        [ 25%]
-tests/test_endpoints.py::test_message_without_intake PASSED   [ 37%]
-tests/test_endpoints.py::test_greeting_intent PASSED          [ 50%]
-tests/test_endpoints.py::test_find_trials_intent PASSED       [ 62%]
-tests/test_endpoints.py::test_goodbye_intent PASSED           [ 75%]
-tests/test_endpoints.py::test_end_session PASSED              [ 87%]
-tests/test_endpoints.py::test_full_conversation_flow PASSED   [100%]
-
-===================== 8 passed in 21.64s =========================
-```
-
-**All tests passing!** ✅
-
----
-
-## 🤝 Contributing
-
-Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
----
-
-## 👥 Team
-
-MaleCare ChatBot Development Team - Abs, Rachael, Henry & Steve
-
----
-
-## 📞 Support
-
-For questions or issues:
-- Open an issue on GitHub
-- Check the [TESTING_GUIDE.md](backend/TESTING_GUIDE.md) for detailed testing help
-- Review [backend/README.md](backend/README.md) for backend-specific documentation
-
----
-
-## 🙏 Acknowledgments & Cited Knowledge
-
-- BioClinicalBERT model by Emily Alsentzer et al.
-- ClinicalTrials.gov for providing the clinical trials database
-- FastAPI and Next.js communities
-
----
-
-## 📝 Changelog
-
-### v0.2.0 - November 28, 2025 (Steve's Updates)
-
-**Bug Fixes:**
-- Fixed NameError in `clinicaltrials_api.py` (condition → cancer_type)
-- Fixed NLP model loading paths to use absolute paths
-- Fixed pytest import issues with conftest.py
-
-**New Features:**
-- Added comprehensive automated test suite (8 tests)
-- Created interactive testing script (interactive_test.py)
-- Added PowerShell test script (test_api.ps1)
-- Improved error handling and fallback dialogue
-
-**Documentation:**
-- Complete backend README with testing instructions
-- Detailed TESTING_GUIDE.md
-- TESTING_SUMMARY.md with results
-- Updated main README with full setup instructions
-
-**Dependencies:**
-- Added missing ML dependencies (torch, transformers)
-- Added testing dependencies (pytest, pytest-cov)
-- Organized requirements.txt with comments
-
----
-
-**Made with ❤️ for cancer patients seeking clinical trials**

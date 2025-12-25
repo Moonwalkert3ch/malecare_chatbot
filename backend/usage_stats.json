@@ -1,0 +1,61 @@
+[
+  {
+    "user_id": "user-1766457321989-m8ttbrzqi",
+    "session_start": "2025-12-22T20:38:02.955181",
+    "age": 60,
+    "location": "tallahasee",
+    "gender": "female",
+    "cancer_type": "Breast",
+    "cancer_stage": "4",
+    "comorbidities": [
+      "0"
+    ],
+    "prior_treatments": [
+      "0"
+    ],
+    "messages_sent": 0,
+    "trials_found": 10,
+    "session_end": null,
+    "total_duration_seconds": null
+  },
+  {
+    "user_id": "test-user-1000000",
+    "session_start": "2025-12-22T20:38:33.154772",
+    "age": 65,
+    "location": "California",
+    "gender": "Male",
+    "cancer_type": "Prostate Cancer",
+    "cancer_stage": "Stage II",
+    "comorbidities": [
+      "Diabetes",
+      "Hypertension"
+    ],
+    "prior_treatments": [
+      "Surgery",
+      "Radiation"
+    ],
+    "messages_sent": 0,
+    "trials_found": 10,
+    "session_end": null,
+    "total_duration_seconds": null
+  },
+  {
+    "user_id": "user-1766457867414-rdyejivnb",
+    "session_start": "2025-12-22T20:44:48.125095",
+    "age": 54,
+    "location": "oklahoma city",
+    "gender": "female",
+    "cancer_type": "Lung",
+    "cancer_stage": "2",
+    "comorbidities": [
+      "diabetes"
+    ],
+    "prior_treatments": [
+      "chemotherapy"
+    ],
+    "messages_sent": 1,
+    "trials_found": 10,
+    "session_end": null,
+    "total_duration_seconds": null
+  }
+]
