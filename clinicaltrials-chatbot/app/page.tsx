@@ -192,9 +192,9 @@ export default function ChatPage() {
   }
 
   function submitQuestionnaire() {
-    // Validate all fields are filled
-    if (!formData.gender || !formData.age || !formData.state || !formData.cancerType || !formData.cancerStage || !formData.comorbidities || !formData.priorTreatments) {
-      alert("Please fill in all fields before submitting.");
+    // Validate required fields are filled (comorbidities and priorTreatments are optional)
+    if (!formData.gender || !formData.age || !formData.state || !formData.cancerType || !formData.cancerStage) {
+      alert("Please fill in all required fields before submitting.");
       return;
     }
     // Log form data (in production, send to backend)
@@ -312,7 +312,7 @@ export default function ChatPage() {
           <h2 className="text-xl font-semibold text-[#1159af]">Are you looking for a clinical trial?</h2>
 
           <Button
-            className="w-46 py-3 text-lg rounded-xl bg-[#1159af] hover:bg-red-300 text-teal-300"
+            className="w-46 py-3 text-lg rounded-xl bg-[#1159af] hover:bg-[#0d478f] text-teal-300"
             onClick={() => setShowChat(true)}
           >
             Chat with Bot Carrie
@@ -432,13 +432,13 @@ export default function ChatPage() {
                     {/* Comorbidities */}
                     <div>
                       <label className="block text-sm font-semibold mb-2">6. List any other diseases or medical conditions you have (type 0 if none):</label>
-                      <Input type="text" placeholder="Enter medical condition(s)" value={formData.comorbidities} onChange={(e) => handleFormChange("comorbidities", e.target.value)} required />
+                      <Input type="text" placeholder="Enter medical condition(s)" value={formData.comorbidities} onChange={(e) => handleFormChange("comorbidities", e.target.value)} />
                     </div>
 
                     {/* Prior Treatments */}
                     <div>
                       <label className="block text-sm font-semibold mb-2">7. What kind of treatments have you done for your current cancer (type 0 if none)?</label>
-                      <Input type="text" placeholder="Enter prior treatments" value={formData.priorTreatments} onChange={(e) => handleFormChange("priorTreatments", e.target.value)} required />
+                      <Input type="text" placeholder="Enter prior treatments" value={formData.priorTreatments} onChange={(e) => handleFormChange("priorTreatments", e.target.value)} />
                     </div>
                     <Button className="mt-4 w-full bg-[#1159af] text-teal-300 hover:bg-[#0d478f]" onClick={submitQuestionnaire}>Find a Trial</Button>
                   </div>
